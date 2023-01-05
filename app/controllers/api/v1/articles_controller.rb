@@ -2,14 +2,16 @@ module Api
   module V1
     # Articles controller class to manage articles
     class ArticlesController < ApplicationController
+      # Set article before the following list of endpoints
+      before_action :set_article, only: %i[show update destroy]
+
       def index
         articles = Article.order('created_at DESC')
         render json: { status: 'SUCCESS', message: 'Articles loaded', data: articles }, status: :ok
       end
 
       def show
-        article = Article.find(params[:id])
-        render json: { status: 'SUCCESS', message: 'Article loaded', data: article }, status: :ok
+        render json: { status: 'SUCCESS', message: 'Article loaded', data: @article }, status: :ok
       end
 
       def create
@@ -23,19 +25,16 @@ module Api
       end
 
       def update
-        article = Article.find(params[:id])
-        if article.update(article_params)
-          render json: { status: 'SUCCESS', message: 'Article updated', data: article }, status: :ok
+        if @article.update(article_params)
+          render json: { status: 'SUCCESS', message: 'Article updated', data: @article }, status: :ok
         else
-          render json: { status: 'ERROR', message: 'Article not updated!', data: article.errors },
+          render json: { status: 'ERROR', message: 'Article not updated!', data: @article.errors },
                  status: :unprocessable_entity
         end
       end
 
       def destroy
-        article = Article.find(params[:id])
-        article.destroy
-
+        @article.destroy
         render json: { status: 'SUCCESS', message: 'Article deleted' }, status: :ok
       end
 
@@ -44,6 +43,11 @@ module Api
       # Only allow a list of trusted parameters through.
       def article_params
         params.require(:article).permit(:title, :body)
+      end
+
+      # Use variable across multiple endpoints
+      def set_article
+        @article = Article.find(params[:id])
       end
     end
   end
